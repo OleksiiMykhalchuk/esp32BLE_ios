@@ -12,6 +12,9 @@
 		883F69A5292E6F09009C8C97 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 883F69A4292E6F09009C8C97 /* Assets.xcassets */; };
 		883F69A8292E6F09009C8C97 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 883F69A7292E6F09009C8C97 /* Preview Assets.xcassets */; };
 		883F69AF292E6FD0009C8C97 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 883F69AE292E6FD0009C8C97 /* ViewModel.swift */; };
+		88A6899A2948676B00A8D920 /* CustomGauge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A689992948676A00A8D920 /* CustomGauge.swift */; };
+		88D92FFE292FADE5005809A8 /* TemperatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D92FFD292FADE5005809A8 /* TemperatureView.swift */; };
+		88D93004292FCE3E005809A8 /* GaugeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D93003292FCE3E005809A8 /* GaugeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +24,9 @@
 		883F69A4292E6F09009C8C97 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		883F69A7292E6F09009C8C97 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		883F69AE292E6FD0009C8C97 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
+		88A689992948676A00A8D920 /* CustomGauge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomGauge.swift; sourceTree = "<group>"; };
+		88D92FFD292FADE5005809A8 /* TemperatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureView.swift; sourceTree = "<group>"; };
+		88D93003292FCE3E005809A8 /* GaugeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GaugeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +64,9 @@
 				883F69AE292E6FD0009C8C97 /* ViewModel.swift */,
 				883F69A4292E6F09009C8C97 /* Assets.xcassets */,
 				883F69A6292E6F09009C8C97 /* Preview Content */,
+				88D92FFD292FADE5005809A8 /* TemperatureView.swift */,
+				88D93003292FCE3E005809A8 /* GaugeView.swift */,
+				88A689992948676A00A8D920 /* CustomGauge.swift */,
 			);
 			path = esp32BLE;
 			sourceTree = "<group>";
@@ -140,8 +149,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				88A6899A2948676B00A8D920 /* CustomGauge.swift in Sources */,
 				883F69A3292E6F07009C8C97 /* ContentView.swift in Sources */,
+				88D92FFE292FADE5005809A8 /* TemperatureView.swift in Sources */,
 				883F69AF292E6FD0009C8C97 /* ViewModel.swift in Sources */,
+				88D93004292FCE3E005809A8 /* GaugeView.swift in Sources */,
 				883F69A1292E6F07009C8C97 /* esp32BLEApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -8,33 +8,63 @@
 import SwiftUI
 
 struct ContentView: View {
-    @ObservedObject var viewModel: ViewModel = ViewModel()
+    @ObservedObject var viewModel: ViewModel
+    @State var hide: Bool = true
 
     var body: some View {
-        ZStack {
-            VStack {
-                Text("Temperature: \(viewModel.temperature)")
-                    .padding()
-                Button {
-                    !viewModel.connected ? viewModel.connect() : viewModel.disconnect()
-                } label: {
-                    Text(viewModel.output)
-                        .padding()
-                        .overlay(RoundedRectangle(cornerRadius: 10)
-                            .stroke(.white, lineWidth: 1))
+        NavigationStack {
+            ZStack {
+                TableView(isHidden: $viewModel.connected) {
+                    List(viewModel.peripherals, id: \.identifier) { peripheral in
+                        Button {
+                            viewModel.connect(perepheral: peripheral)
+                            viewModel.title = peripheral.name ?? "Unnamed"
+                        } label: {
+                            Text(peripheral.name ?? "Unnamed")
+                        }
+                    }
+                    .listStyle(.plain)
                 }
-                .background(.yellow)
-                .cornerRadius(10)
-
+                GaugeView(value: $viewModel.temperature, isShown: $viewModel.connected)
             }
+            .navigationTitle(viewModel.title)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        switch viewModel.state {
+                        case .Scan:
+                            viewModel.start()
+                        case .StopScanning:
+                            viewModel.stop()
+                        case .Disconnect:
+                            viewModel.disconnect()
+                        case .Connect:
+                            print("")
+                        }
+                    } label: {
+                        Text(viewModel.state.rawValue)
+                    }
 
+                }
+            }
         }
-        .padding()
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView(viewModel: ViewModel())
+    }
+}
+
+struct TableView<Content: View>: View {
+
+    @Binding var isHidden: Bool
+    var content: () -> Content
+
+    var body: some View {
+        VStack(content: content)
+            .opacity(isHidden ? 0 : 1)
+            .animation(.spring(), value: isHidden)
     }
 }

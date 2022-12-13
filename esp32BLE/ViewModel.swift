@@ -8,11 +8,23 @@
 import Foundation
 import CoreBluetooth
 
+enum BLEState: String {
+    case Scan
+    case StopScanning = "Stop Scanning"
+    case Disconnect
+    case Connect
+}
+
 class ViewModel: NSObject, ObservableObject  {
 
-    @Published var temperature: UInt8 = 0
+
+    @Published var temperature: Float = 0
     @Published var connected: Bool = false
-    @Published var output = "Connect"
+    @Published var title = "Scan Devices"
+    @MainActor @Published var peripherals: [CBPeripheral] = []
+    @Published var pereferalSelected: CBPeripheral?
+
+    var state: BLEState = .Scan
 
     private let serviceUUID = CBUUID(string: "da30e919-38b1-469e-9081-da9f59c04c34")
     private let inputCharUUID = CBUUID(string: "f8abccc0-488f-4747-8dd2-808a4c70bfc3")
@@ -22,16 +34,38 @@ class ViewModel: NSObject, ObservableObject  {
     private var outputCHar: CBCharacteristic?
 
     private var centralManager: CBCentralManager?
-    private var connectedPeripheral: CBPeripheral?
+    var connectedPeripheral: CBPeripheral?
 
-    func connect() {
+    init(peripheral: CBPeripheral? = nil) {
+        self.connectedPeripheral = peripheral
+    }
+
+    func start() {
         let queue = DispatchQueue(label: "test")
         centralManager = CBCentralManager(delegate: self, queue: queue)
+        state = .StopScanning
+    }
+    @MainActor func stop() {
+        guard let manager = centralManager else { return }
+        manager.stopScan()
+        peripherals.removeAll()
+        state = .Scan
     }
     func disconnect() {
         guard let manager = centralManager,
               let peripheral = connectedPeripheral else { return }
         manager.cancelPeripheralConnection(peripheral)
+        state = .Scan
+        title = "Scan Devices"
+    }
+    @MainActor func connect(perepheral: CBPeripheral) {
+        stop()
+        connectedPeripheral = perepheral
+        centralManager?.connect(perepheral)
+        state = .Disconnect
+    }
+    deinit {
+        print("\(description) deinit")
     }
 }
 extension ViewModel: CBCentralManagerDelegate {
@@ -43,17 +77,21 @@ extension ViewModel: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         central.stopScan()
         connectedPeripheral = peripheral
-        central.connect(peripheral)
+        DispatchQueue.main.async { [weak self] in
+            self?.peripherals.append(peripheral)
+        }
     }
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         peripheral.delegate = self
         peripheral.discoverServices(nil)
+        DispatchQueue.main.async { [weak self] in
+            self?.connected = true
+        }
     }
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         centralManager = nil
-        DispatchQueue.main.async {
-            self.connected = false
-            self.output = "Connect"
+        DispatchQueue.main.async { [weak self] in
+            self?.connected = false
         }
     }
 }
@@ -79,18 +117,13 @@ extension ViewModel: CBPeripheralDelegate {
                 break
             }
         }
-
-        DispatchQueue.main.async {
-            self.connected = true
-            self.output = "Disconnect"
-        }
     }
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         if characteristic.uuid == outputCharUUID, let data = characteristic.value {
             let bytes: [UInt8] = data.map { $0 }
             if let answer = bytes.first {
                 DispatchQueue.main.async {
-                    self.temperature = answer
+                    self.temperature = Float(answer)
                 }
             }
         }
