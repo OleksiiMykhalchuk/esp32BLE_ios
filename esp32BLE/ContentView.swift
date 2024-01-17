@@ -11,6 +11,8 @@ struct ContentView: View {
     @ObservedObject var viewModel: ViewModel
     @State var hide: Bool = true
 
+    @FocusState private var isFocused
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -25,9 +27,15 @@ struct ContentView: View {
                     }
                     .listStyle(.plain)
                 }
-                GaugeView(value: $viewModel.temperature, isShown: $viewModel.connected)
+                VStack {
+                    GaugeView(value: $viewModel.temperature, isShown: $viewModel.connected)
+                    
+                    textButton
+                        .opacity(viewModel.connected ? 1 : 0)
+                }
+
             }
-            .navigationTitle(viewModel.title)
+            .navigationTitle (viewModel.title)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
@@ -47,6 +55,33 @@ struct ContentView: View {
 
                 }
             }
+        }
+    }
+
+    private var textButton: some View {
+        VStack {
+            TextField("Setpoint", text: $viewModel.setpoint)
+                .disableAutocorrection(true)
+                .padding(.leading, 60)
+                .padding(.trailing, 60)
+                .cornerRadius(6)
+                .textFieldStyle(.roundedBorder)
+                .keyboardType(.decimalPad)
+                .focused($isFocused)
+                .onChange(of: isFocused) { isFocused in
+                    viewModel.isFocusted = isFocused
+                }
+            Button {
+                viewModel.writeData(value: UInt8(Int(viewModel.setpoint) ?? Int(Float(viewModel.setpoint)!)))
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            } label: {
+                Text("Send")
+            }
+            .padding()
+            .frame(width: 200, height: 60)
+            .background(.blue)
+            .foregroundColor(.black)
+            .cornerRadius(10)
         }
     }
 }

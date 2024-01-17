@@ -19,19 +19,24 @@ class ViewModel: NSObject, ObservableObject  {
 
 
     @Published var temperature: Float = 0
+    @Published var setpoint: String = "0"
     @Published var connected: Bool = false
     @Published var title = "Scan Devices"
     @MainActor @Published var peripherals: [CBPeripheral] = []
     @Published var pereferalSelected: CBPeripheral?
+
+    var isFocusted: Bool = false
 
     var state: BLEState = .Scan
 
     private let serviceUUID = CBUUID(string: "da30e919-38b1-469e-9081-da9f59c04c34")
     private let inputCharUUID = CBUUID(string: "f8abccc0-488f-4747-8dd2-808a4c70bfc3")
     private let outputCharUUID = CBUUID(string: "ad0d60a7-6770-4383-a879-5cd77d75ec26")
+    private let setpointUUID = CBUUID(string: "04b250d7-c16b-4905-bbb3-65b597685dae")
 
     private var inputChar: CBCharacteristic?
     private var outputCHar: CBCharacteristic?
+    private var setpointChar: CBCharacteristic?
 
     private var centralManager: CBCentralManager?
     var connectedPeripheral: CBPeripheral?
@@ -64,6 +69,12 @@ class ViewModel: NSObject, ObservableObject  {
         centralManager?.connect(perepheral)
         state = .Disconnect
     }
+
+    func writeData(value: UInt8) {
+        var value = value
+        let data = Data(bytes: &value, count: MemoryLayout<UInt8>.size)
+        connectedPeripheral?.writeValue(data, for: inputChar!, type: .withoutResponse)
+    }
     deinit {
         print("\(description) deinit")
     }
@@ -92,6 +103,8 @@ extension ViewModel: CBCentralManagerDelegate {
         centralManager = nil
         DispatchQueue.main.async { [weak self] in
             self?.connected = false
+            self?.state = .Scan
+            self?.title = "Scan Devices"
         }
     }
 }
@@ -113,6 +126,9 @@ extension ViewModel: CBPeripheralDelegate {
             case outputCharUUID:
                 self.outputCHar = characteristic
                 peripheral.setNotifyValue(true, for: characteristic)
+            case setpointUUID:
+                self.setpointChar = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
             default:
                 break
             }
@@ -122,8 +138,18 @@ extension ViewModel: CBPeripheralDelegate {
         if characteristic.uuid == outputCharUUID, let data = characteristic.value {
             let bytes: [UInt8] = data.map { $0 }
             if let answer = bytes.first {
-                DispatchQueue.main.async {
-                    self.temperature = Float(answer)
+                DispatchQueue.main.async { [weak self] in
+                    self?.temperature = Float(answer)
+                }
+            }
+        } else if characteristic.uuid == setpointUUID, let data = characteristic.value {
+            let byte: [UInt8] = data.map { $0 }
+            if let answer = byte.first {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    if !self.isFocusted {
+                        self.setpoint = "\(Int(answer))"
+                    }
                 }
             }
         }
